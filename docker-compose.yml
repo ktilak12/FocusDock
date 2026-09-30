@@ -1,0 +1,70 @@
+﻿# ─────────────────────────────────────────────────────────────────────────────
+# FocusDock — Docker Compose
+#
+# Services
+# ─────────
+#  focusdock  — Run the full Electron app via X11 display forwarding (Linux)
+#  renderer   — Vite dev-server: preview the React UI in any browser (all OS)
+#  build      — One-shot: compile TypeScript + Vite, output to ./dist
+#
+# Quick start (Linux X11):
+#   xhost +local:docker
+#   docker compose up focusdock
+#
+# Quick start (React web preview — all platforms):
+#   docker compose up renderer
+#   Open http://localhost:5173
+#
+# Build only:
+#   docker compose run --rm build
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Full Electron app via X11 (Linux hosts only) ────────────────────────────
+  focusdock:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    environment:
+      # Forward your host display to the container
+      - DISPLAY=
+    volumes:
+      # X11 socket for display forwarding
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Persist app data (tasks, settings) between container restarts
+      - focusdock-data:/home/focusdock/.config/FocusDock
+    network_mode: host
+    restart: unless-stopped
+
+  # ── Vite renderer dev-server (works on ALL platforms) ──────────────────────
+  renderer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    command: ["npm", "run", "dev:renderer"]
+    environment:
+      - NODE_ENV=development
+
+  # ── One-shot build (compiles dist/ on host filesystem) ─────────────────────
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "run", "build"]
+
+volumes:
+  focusdock-data:

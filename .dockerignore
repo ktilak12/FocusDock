@@ -1,0 +1,30 @@
+﻿# Dependencies (will be installed fresh inside the container)
+node_modules
+
+# Build artifacts
+dist
+release
+
+# Logs & OS files
+*.log
+debug_error.log
+err.txt
+out.txt
+.DS_Store
+Thumbs.db
+
+# Editor configs
+.vscode
+.idea
+
+# Git
+.git
+
+# Env files
+.env
+.env.local
+
+# Docker files themselves (no need to copy into context)
+Dockerfile
+docker-compose.yml
+.dockerignore
