@@ -157,6 +157,7 @@ if (!gotTheLock) {
   app.on('will-quit', () => {
     if (shortcutManager) shortcutManager.unregisterAll();
     if (reminderScheduler) reminderScheduler.stop();
+    if (storage) storage.flushSync();
   });
 
   app.on('window-all-closed', () => {

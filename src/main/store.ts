@@ -65,17 +65,69 @@ export class StorageService {
     return initialData;
   }
 
-  private saveData(data: DatabaseSchema): boolean {
+  private saveTimeout: NodeJS.Timeout | null = null;
+  private isWriting: boolean = false;
+  private hasPendingSave: boolean = false;
+
+  private saveData(data: DatabaseSchema, immediate: boolean = false): boolean {
+    this.data = data;
+
+    if (immediate) {
+      if (this.saveTimeout) {
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = null;
+      }
+      return this.flushSync();
+    }
+
+    if (this.saveTimeout) {
+      clearTimeout(this.saveTimeout);
+    }
+
+    this.saveTimeout = setTimeout(() => {
+      this.saveTimeout = null;
+      this.flushAsync();
+    }, 300);
+
+    return true;
+  }
+
+  public flushSync(): boolean {
     try {
       const tempPath = `${this.filePath}.tmp`;
-      fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+      fs.writeFileSync(tempPath, JSON.stringify(this.data, null, 2), 'utf-8');
       fs.renameSync(tempPath, this.filePath);
-      this.data = data;
       return true;
     } catch (err) {
-      console.error('Failed to save FocusDock database:', err);
+      console.error('Failed to save FocusDock database synchronously:', err);
       return false;
     }
+  }
+
+  private async flushAsync(): Promise<boolean> {
+    if (this.isWriting) {
+      this.hasPendingSave = true;
+      return false;
+    }
+
+    this.isWriting = true;
+    this.hasPendingSave = false;
+
+    try {
+      const tempPath = `${this.filePath}.tmp`;
+      const content = JSON.stringify(this.data, null, 2);
+      await fs.promises.writeFile(tempPath, content, 'utf-8');
+      await fs.promises.rename(tempPath, this.filePath);
+    } catch (err) {
+      console.error('Failed to save FocusDock database asynchronously:', err);
+    } finally {
+      this.isWriting = false;
+      if (this.hasPendingSave) {
+        this.flushAsync();
+      }
+    }
+
+    return true;
   }
 
   public getTasks(): Task[] {
@@ -83,8 +135,7 @@ export class StorageService {
   }
 
   public saveTasks(tasks: Task[]): boolean {
-    this.data.tasks = tasks;
-    return this.saveData(this.data);
+    return this.saveData({ ...this.data, tasks });
   }
 
   public addTask(taskInput: Omit<Task, 'id' | 'createdAt'>): Task {
@@ -93,33 +144,35 @@ export class StorageService {
       id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       createdAt: new Date().toISOString(),
     };
-    this.data.tasks.unshift(newTask);
-    this.saveData(this.data);
+    const newTasks = [newTask, ...this.data.tasks];
+    this.saveData({ ...this.data, tasks: newTasks }, true);
     return newTask;
   }
 
   public updateTask(task: Task): Task {
-    const index = this.data.tasks.findIndex((t) => t.id === task.id);
+    const newTasks = [...this.data.tasks];
+    const index = newTasks.findIndex((t) => t.id === task.id);
     if (index !== -1) {
-      this.data.tasks[index] = task;
+      newTasks[index] = task;
     } else {
-      this.data.tasks.unshift(task);
+      newTasks.unshift(task);
     }
-    this.saveData(this.data);
+    this.saveData({ ...this.data, tasks: newTasks });
     return task;
   }
 
   public deleteTask(id: string): boolean {
-    this.data.tasks = this.data.tasks.filter((t) => t.id !== id);
-    return this.saveData(this.data);
+    const newTasks = this.data.tasks.filter((t) => t.id !== id);
+    return this.saveData({ ...this.data, tasks: newTasks });
   }
 
   public getSettings(): AppSettings {
     return this.data.settings;
   }
 
-  public saveSettings(settingsPartial: Partial<AppSettings>): boolean {
-    this.data.settings = { ...this.data.settings, ...settingsPartial };
-    return this.saveData(this.data);
+  public saveSettings(settingsPartial: Partial<AppSettings>, immediate: boolean = false): boolean {
+    const newSettings = { ...this.data.settings, ...settingsPartial };
+    return this.saveData({ ...this.data, settings: newSettings }, immediate);
   }
 }
+
