@@ -66,7 +66,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         api.getTasks(),
         api.getSettings(),
       ]);
-      setTasks(fetchedTasks);
+      const uniqueTasks = fetchedTasks.filter((t, index, self) => index === self.findIndex((x) => x.id === t.id));
+      setTasks(uniqueTasks);
       setSettings(fetchedSettings);
       if (fetchedSettings.isFirstRun) {
         setIsWelcomeModalOpen(true);
@@ -85,14 +86,21 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAddTaskModalOpen(true);
       });
       const unsubReminder = api.onTaskReminderTriggered((taskId) => {
-        const found = tasks.find((t) => t.id === taskId);
-        if (found) setEditingTask(found);
+        setTasks((currentTasks) => {
+          const found = currentTasks.find((t) => t.id === taskId);
+          if (found) setEditingTask(found);
+          return currentTasks;
+        });
+      });
+      const unsubTasksUpdated = api.onTasksUpdated?.(() => {
+        refreshData();
       });
 
       return () => {
         unsubView();
         unsubQuick();
         unsubReminder();
+        if (unsubTasksUpdated) unsubTasksUpdated();
       };
     }
   }, []);
@@ -115,12 +123,20 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [settings.theme]);
 
   const addTask = async (taskInput: Omit<Task, 'id' | 'createdAt'>) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const finalInput = {
+      ...taskInput,
+      dueDate: taskInput.dueDate || todayStr,
+    };
     if (api) {
-      const newTask = await api.addTask(taskInput);
-      setTasks((prev) => [newTask, ...prev]);
+      const newTask = await api.addTask(finalInput);
+      setTasks((prev) => {
+        if (prev.some((t) => t.id === newTask.id)) return prev;
+        return [newTask, ...prev];
+      });
     } else {
       const newTask: Task = {
-        ...taskInput,
+        ...finalInput,
         id: `task-${Date.now()}`,
         createdAt: new Date().toISOString(),
       };
@@ -131,11 +147,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const quickAddTask = async (inputStr: string) => {
     if (!inputStr.trim()) return;
     const parsed = parseNaturalLanguageTask(inputStr);
+    const todayStr = new Date().toISOString().split('T')[0];
     await addTask({
       title: parsed.title,
       completed: false,
       priority: parsed.priority,
-      dueDate: parsed.dueDate,
+      dueDate: parsed.dueDate || todayStr,
       time: parsed.time,
       reminderTime: parsed.reminderTime,
       repeatRule: parsed.repeatRule,
