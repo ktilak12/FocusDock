@@ -80,6 +80,7 @@ export interface FocusDockAPI {
   onViewChange: (callback: (mode: 'full' | 'widget' | 'quick-add') => void) => () => void;
   onQuickAddTriggered: (callback: () => void) => () => void;
   onTaskReminderTriggered: (callback: (taskId: string) => void) => () => void;
+  onTasksUpdated?: (callback: () => void) => () => void;
 }
 
 declare global {

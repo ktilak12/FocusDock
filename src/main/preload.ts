@@ -45,6 +45,11 @@ const focusDockAPI: FocusDockAPI = {
     ipcRenderer.on('task-reminder-triggered', handler);
     return () => ipcRenderer.removeListener('task-reminder-triggered', handler);
   },
+  onTasksUpdated: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('tasks-updated', handler);
+    return () => ipcRenderer.removeListener('tasks-updated', handler);
+  },
 };
 
 contextBridge.exposeInMainWorld('focusDockAPI', focusDockAPI);
