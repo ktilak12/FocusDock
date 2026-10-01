@@ -270,11 +270,6 @@ export class WindowManager {
       const targetW = Math.max(minW, Math.round(width));
       const targetH = Math.max(minH, Math.round(height));
       this.mainWindow.setSize(targetW, targetH);
-      const bounds = this.mainWindow.getBounds();
-      this.storage.saveSettings({
-        widgetWidth: bounds.width,
-        widgetHeight: bounds.height,
-      });
     }
   }
 
