@@ -16,7 +16,12 @@ export const TodayPage: React.FC = () => {
   if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
   if (hour >= 17) greeting = 'Good evening';
 
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr);
+  const todayTasks = tasks.filter((t) => {
+    if (!t.dueDate) return true;
+    if (t.dueDate === todayStr) return true;
+    if (!t.completed && t.dueDate < todayStr) return true;
+    return false;
+  });
   const completedCount = todayTasks.filter((t) => t.completed).length;
 
   return (
