@@ -17,7 +17,12 @@ export const WidgetView: React.FC = () => {
   if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
   if (hour >= 17) greeting = 'Good evening';
 
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr);
+  const todayTasks = tasks.filter((t) => {
+    if (!t.dueDate) return true;
+    if (t.dueDate === todayStr) return true;
+    if (!t.completed && t.dueDate < todayStr) return true;
+    return false;
+  });
   const pendingTodayCount = todayTasks.filter((t) => !t.completed).length;
 
   const handleResizePointerDown = (e: React.PointerEvent) => {
@@ -28,15 +33,31 @@ export const WidgetView: React.FC = () => {
     const startWidth = window.outerWidth;
     const startHeight = window.outerHeight;
 
+    let rafId: number | null = null;
+    let lastX = startX;
+    let lastY = startY;
+
     const handlePointerMove = (moveEvent: PointerEvent) => {
-      const deltaX = moveEvent.screenX - startX;
-      const deltaY = moveEvent.screenY - startY;
-      const newWidth = Math.max(250, startWidth + deltaX);
-      const newHeight = Math.max(300, startHeight + deltaY);
-      api?.setWindowSize(newWidth, newHeight);
+      lastX = moveEvent.screenX;
+      lastY = moveEvent.screenY;
+
+      if (rafId === null) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          const deltaX = lastX - startX;
+          const deltaY = lastY - startY;
+          const newWidth = Math.max(250, startWidth + deltaX);
+          const newHeight = Math.max(300, startHeight + deltaY);
+          api?.setWindowSize(newWidth, newHeight);
+        });
+      }
     };
 
     const handlePointerUp = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
