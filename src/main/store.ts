@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableNotifications: true,
   reminderSound: true,
   snoozeDurationMinutes: 10,
-  widgetOpacity: 0.95,
+  widgetOpacity: 0.5,
   widgetSize: 'standard',
   showCompletedInWidget: true,
   isFirstRun: false,
@@ -28,7 +28,10 @@ const DEFAULT_SETTINGS: AppSettings = {
 const getTodayString = (offsetDays = 0) => {
   const d = new Date();
   d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 const SAMPLE_TASKS: Task[] = [];

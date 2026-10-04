@@ -133,6 +133,13 @@ export class WindowManager {
     const isPinned = !!settings.alwaysOnTop;
     this.mainWindow.setAlwaysOnTop(isPinned);
     
+    // Set widget opacity (defaults to 0.5 = 50% transparent) or full opacity
+    if (isWidgetMode) {
+      this.mainWindow.setOpacity(settings.widgetOpacity ?? 0.5);
+    } else {
+      this.mainWindow.setOpacity(1.0);
+    }
+
     // In widget mode on home screen, display without stealing focus from active windows
     if (isWidgetMode && !isPinned) {
       this.mainWindow.showInactive();
@@ -252,15 +259,24 @@ export class WindowManager {
       }
       this.mainWindow.setResizable(true);
       this.mainWindow.setSkipTaskbar(true);
+      this.mainWindow.setOpacity(settings.widgetOpacity ?? 0.5);
     } else if (mode === 'full') {
       this.mainWindow.setSize(1000, 660);
       this.mainWindow.setMinimumSize(760, 500);
       this.mainWindow.setResizable(true);
       this.mainWindow.setSkipTaskbar(false);
+      this.mainWindow.setOpacity(1.0);
       this.mainWindow.center();
     }
 
     this.mainWindow.webContents.send('view-changed', mode);
+  }
+
+  public setOpacity(opacity: number) {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      const clamped = Math.max(0.1, Math.min(1.0, opacity));
+      this.mainWindow.setOpacity(clamped);
+    }
   }
 
   public setWindowSize(width: number, height: number) {

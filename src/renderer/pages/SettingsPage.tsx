@@ -75,6 +75,35 @@ export const SettingsPage: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Widget Transparency Slider */}
+        <div className="pt-3 border-t border-slate-800/60 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Eye className="w-3.5 h-3.5 text-sky-400" />
+              <span className="font-medium text-xs text-slate-200">Widget Opacity / Transparency</span>
+            </div>
+            <span className="px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-400 font-mono text-xs font-semibold">
+              {Math.round((settings.widgetOpacity ?? 0.5) * 100)}% Opacity
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Adjust how transparent the desktop widget appears on your screen (default: 50%).
+          </p>
+          <div className="flex items-center space-x-3 pt-1">
+            <span className="text-[11px] text-slate-500 font-mono">20%</span>
+            <input
+              type="range"
+              min="0.2"
+              max="1"
+              step="0.05"
+              value={settings.widgetOpacity ?? 0.5}
+              onChange={(e) => updateSettings({ widgetOpacity: parseFloat(e.target.value) })}
+              className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-500"
+            />
+            <span className="text-[11px] text-slate-500 font-mono">100%</span>
+          </div>
+        </div>
       </section>
 
       {/* Behavior & Windows Integration */}

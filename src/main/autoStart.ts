@@ -10,7 +10,6 @@ export function configureAutoStart(enable: boolean): boolean {
 
     app.setLoginItemSettings({
       openAtLogin: enable,
-      openAsHidden: false,
       path: process.execPath,
       args,
     });

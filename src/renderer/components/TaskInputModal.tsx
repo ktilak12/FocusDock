@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import { Calendar, ChevronDown, ChevronUp, Clock, Flame, Plus, Repeat, Tag, X } from 'lucide-react';
 import { parseNaturalLanguageTask } from '../../shared/nlpParser';
 import { Priority, RepeatRule } from '../../types';
@@ -20,7 +21,7 @@ export const TaskInputModal: React.FC = () => {
     if (isAddTaskModalOpen) {
       setRawInput('');
       setDescription('');
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
       setDueDate(todayStr);
       setTime('');
       setPriority('medium');
@@ -53,7 +54,8 @@ export const TaskInputModal: React.FC = () => {
 
     const parsed = parseNaturalLanguageTask(rawInput);
     const finalTitle = parsed.title.trim() || rawInput.trim();
-    const finalDueDate = dueDate || parsed.dueDate || new Date().toISOString().split('T')[0];
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const finalDueDate = dueDate || parsed.dueDate || todayStr;
     const finalTime = time || parsed.time;
     const finalReminder = finalDueDate && finalTime ? `${finalDueDate}T${finalTime}:00` : undefined;
 

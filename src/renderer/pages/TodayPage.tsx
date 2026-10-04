@@ -19,6 +19,7 @@ export const TodayPage: React.FC = () => {
   const todayTasks = tasks.filter((t) => {
     if (!t.dueDate) return true;
     if (t.dueDate === todayStr) return true;
+    if (t.completed && t.completedAt && t.completedAt.startsWith(todayStr)) return true;
     if (!t.completed && t.dueDate < todayStr) return true;
     return false;
   });

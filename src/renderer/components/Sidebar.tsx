@@ -1,14 +1,15 @@
 import React from 'react';
+import { format } from 'date-fns';
 import { Calendar, CheckCircle2, Clock, Inbox, Plus, Settings, Star, Sun } from 'lucide-react';
 import { useTaskContext } from '../context/TaskContext';
 
 export const Sidebar: React.FC = () => {
   const { activeFilter, setActiveFilter, tasks, setIsAddTaskModalOpen } = useTaskContext();
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
 
   const counts = {
-    today: tasks.filter((t) => t.dueDate === todayStr && !t.completed).length,
+    today: tasks.filter((t) => (t.dueDate === todayStr || (!t.completed && t.dueDate && t.dueDate < todayStr) || (!t.completed && !t.dueDate)) && !t.completed).length,
     upcoming: tasks.filter((t) => t.dueDate && t.dueDate > todayStr && !t.completed).length,
     all: tasks.filter((t) => !t.completed).length,
     completed: tasks.filter((t) => t.completed).length,

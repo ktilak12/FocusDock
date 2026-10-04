@@ -18,8 +18,10 @@ export const WidgetView: React.FC = () => {
   if (hour >= 17) greeting = 'Good evening';
 
   const todayTasks = tasks.filter((t) => {
+    if (!settings.showCompletedInWidget && t.completed) return false;
     if (!t.dueDate) return true;
     if (t.dueDate === todayStr) return true;
+    if (t.completed && t.completedAt && t.completedAt.startsWith(todayStr)) return true;
     if (!t.completed && t.dueDate < todayStr) return true;
     return false;
   });

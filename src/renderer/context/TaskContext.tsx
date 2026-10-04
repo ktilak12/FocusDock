@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import { parseNaturalLanguageTask } from '../../shared/nlpParser';
 import { AppSettings, Priority, RepeatRule, Task } from '../../types';
 
@@ -11,7 +12,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableNotifications: true,
   reminderSound: true,
   snoozeDurationMinutes: 10,
-  widgetOpacity: 0.95,
+  widgetOpacity: 0.5,
   widgetSize: 'standard',
   showCompletedInWidget: true,
   isFirstRun: false,
@@ -123,7 +124,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [settings.theme]);
 
   const addTask = async (taskInput: Omit<Task, 'id' | 'createdAt'>) => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
     const finalInput = {
       ...taskInput,
       dueDate: taskInput.dueDate || todayStr,
@@ -147,7 +148,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const quickAddTask = async (inputStr: string) => {
     if (!inputStr.trim()) return;
     const parsed = parseNaturalLanguageTask(inputStr);
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
     await addTask({
       title: parsed.title,
       completed: false,
@@ -184,7 +185,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // If completed and has repeatRule, generate next instance!
     if (isNowCompleted && target.repeatRule && target.repeatRule !== 'none') {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
       await addTask({
         title: target.title,
         description: target.description,

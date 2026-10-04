@@ -109,6 +109,12 @@ if (!gotTheLock) {
       if (newSettings.alwaysOnTop !== undefined) {
         windowManager.setAlwaysOnTop(newSettings.alwaysOnTop);
       }
+      if (newSettings.widgetOpacity !== undefined) {
+        const currentMode = storage.getSettings().currentViewMode;
+        if (currentMode === 'widget') {
+          windowManager.setOpacity(newSettings.widgetOpacity);
+        }
+      }
       trayManager.updateContextMenu();
       return saved;
     });
