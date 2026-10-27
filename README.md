@@ -1,4 +1,4 @@
-﻿# FocusDock 🎯
+﻿# FocusDock 
 
 A minimal, beautiful **desktop widget** for Windows 10/11 — your personal to-do list and reminder companion that lives right on your home screen.
 
