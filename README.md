@@ -4,7 +4,7 @@ A minimal, beautiful **desktop widget** for Windows 10/11 — your personal to-d
 
 ---
 
-## ⚡ Quickest Way: Download & Install
+## ⚡ QUICKEST WAY: Download & Install
 
 > **No Node.js or Docker needed — just download and run.**
 
